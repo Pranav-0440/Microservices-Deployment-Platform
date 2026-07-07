@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Microservices Deployment Platform - Control Panel</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <!-- Lucide Icons CDN -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+    <div class="glass-bg-radial"></div>
+
+    <header class="navbar">
+        <div class="brand">
+            <i data-lucide="cpu" class="neon-icon"></i>
+            <span>Microservices Platform</span>
+        </div>
+        <div class="status-indicator">
+            <span class="status-dot green"></span>
+            <span>Gateway: <strong id="gateway-status">http://localhost:8080</strong></span>
+        </div>
+    </header>
+
+    <main class="dashboard-grid">
+        <!-- LEFT PANEL: Auth & Admin Panel -->
+        <section class="panel-left">
+            <!-- 1. Authentication -->
+            <div class="glass-card" id="auth-card">
+                <div class="card-header">
+                    <i data-lucide="shield-check" class="purple-icon"></i>
+                    <h2>User Authentication</h2>
+                </div>
+                
+                <div class="auth-tabs">
+                    <button class="tab-btn active" onclick="switchAuthTab('login')">Login</button>
+                    <button class="tab-btn" onclick="switchAuthTab('register')">Register</button>
+                </div>
+
+                <!-- Login Form -->
+                <form id="login-form" class="auth-form" onsubmit="handleLogin(event)">
+                    <div class="input-group">
+                        <label for="login-username">Username</label>
+                        <input type="text" id="login-username" required placeholder="admin">
+                    </div>
+                    <div class="input-group">
+                        <label for="login-password">Password</label>
+                        <input type="password" id="login-password" required placeholder="password123">
+                    </div>
+                    <button type="submit" class="btn-primary">
+                        <span>Sign In</span>
+                        <i data-lucide="log-in"></i>
+                    </button>
+                </form>
+
+                <!-- Register Form -->
+                <form id="register-form" class="auth-form hidden" onsubmit="handleRegister(event)">
+                    <div class="input-group">
+                        <label for="reg-username">Username</label>
+                        <input type="text" id="reg-username" required placeholder="john_doe">
+                    </div>
+                    <div class="input-group">
+                        <label for="reg-email">Email</label>
+                        <input type="email" id="reg-email" required placeholder="john@example.com">
+                    </div>
+                    <div class="input-group">
+                        <label for="reg-password">Password</label>
+                        <input type="password" id="reg-password" required placeholder="password123">
+                    </div>
+                    <div class="input-group">
+                        <label for="reg-role">Role</label>
+                        <select id="reg-role">
+                            <option value="USER">User (Standard)</option>
+                            <option value="ADMIN">Admin (Catalog Privileges)</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn-primary">
+                        <span>Sign Up</span>
+                        <i data-lucide="user-plus"></i>
+                    </button>
+                </form>
+
+                <!-- Profile Info (Shows when logged in) -->
+                <div id="profile-container" class="hidden">
+                    <div class="user-badge">
+                        <div class="avatar" id="profile-avatar">A</div>
+                        <div class="user-meta">
+                            <h3 id="profile-username">admin</h3>
+                            <span class="role-tag" id="profile-role">ROLE_ADMIN</span>
+                        </div>
+                    </div>
+                    <div class="jwt-container">
+                        <label>Active JWT Token:</label>
+                        <textarea id="token-display" readonly></textarea>
+                    </div>
+                    <button class="btn-secondary" onclick="handleLogout()">
+                        <span>Sign Out</span>
+                        <i data-lucide="log-out"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 2. Admin Portal (Only active if logged in user has ROLE_ADMIN) -->
+            <div class="glass-card hidden" id="admin-card">
+                <div class="card-header">
+                    <i data-lucide="plus-circle" class="blue-icon"></i>
+                    <h2>Add Catalog Product</h2>
+                </div>
+                <form id="product-form" onsubmit="handleCreateProduct(event)">
+                    <div class="input-group">
+                        <label for="prod-name">Product Name</label>
+                        <input type="text" id="prod-name" required placeholder="Laptop">
+                    </div>
+                    <div class="input-group">
+                        <label for="prod-desc">Description</label>
+                        <input type="text" id="prod-desc" required placeholder="Workstation device">
+                    </div>
+                    <div class="input-row">
+                        <div class="input-group">
+                            <label for="prod-price">Price ($)</label>
+                            <input type="number" step="0.01" id="prod-price" required placeholder="1200.00">
+                        </div>
+                        <div class="input-group">
+                            <label for="prod-stock">Stock</label>
+                            <input type="number" id="prod-stock" required placeholder="15">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn-accent">
+                        <span>Create Product</span>
+                        <i data-lucide="package-plus"></i>
+                    </button>
+                </form>
+            </div>
+        </section>
+
+        <!-- RIGHT PANEL: Product Catalog & Logs -->
+        <section class="panel-right">
+            <!-- 3. Product Catalog -->
+            <div class="glass-card flex-grow">
+                <div class="card-header justify-between">
+                    <div class="header-title">
+                        <i data-lucide="shopping-bag" class="green-icon"></i>
+                        <h2>Product Catalog</h2>
+                    </div>
+                    <button class="btn-refresh" onclick="fetchProducts()" title="Refresh Catalog">
+                        <i data-lucide="refresh-cw" id="refresh-icon"></i>
+                    </button>
+                </div>
+
+                <div id="catalog-loading" class="loading-spinner hidden">
+                    <div class="spinner"></div>
+                    <span>Fetching catalog...</span>
+                </div>
+
+                <div id="catalog-container" class="catalog-list">
+                    <!-- Products will be injected here -->
+                </div>
+                <div id="catalog-empty" class="empty-state">
+                    <i data-lucide="package-open"></i>
+                    <p>No products found in catalog. Log in as ADMIN to create your first product.</p>
+                </div>
+            </div>
+
+            <!-- 4. Console Log Console -->
+            <div class="glass-card console-card">
+                <div class="card-header justify-between">
+                    <div class="header-title">
+                        <i data-lucide="terminal" class="orange-icon"></i>
+                        <h2>Activity Console logs</h2>
+                    </div>
+                    <button class="btn-clear" onclick="clearLogs()" title="Clear Console">
+                        <i data-lucide="trash-2"></i>
+                    </button>
+                </div>
+                <div class="console-body" id="console-output">
+                    <div class="log-entry system">[SYSTEM] Platform interface loaded. Ready to execute transactions.</div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- 5. Order/Checkout Drawer -->
+    <div id="checkout-drawer" class="drawer hidden">
+        <div class="drawer-overlay" onclick="closeCheckout()"></div>
+        <div class="drawer-content">
+            <div class="drawer-header">
+                <h2>Confirm Checkout</h2>
+                <button class="btn-close" onclick="closeCheckout()"><i data-lucide="x"></i></button>
+            </div>
+            <div class="drawer-body">
+                <div class="selected-product-info">
+                    <h3 id="checkout-prod-name">Laptop</h3>
+                    <p id="checkout-prod-desc">High-end developer workspace workstation laptop</p>
+                    <div class="price-badge">Unit Price: $<span id="checkout-prod-price">1200.00</span></div>
+                </div>
+
+                <div class="input-group quantity-selector">
+                    <label for="checkout-quantity">Quantity to Order</label>
+                    <div class="number-stepper">
+                        <button onclick="changeQuantity(-1)"><i data-lucide="minus"></i></button>
+                        <input type="number" id="checkout-quantity" value="1" min="1" readonly>
+                        <button onclick="changeQuantity(1)"><i data-lucide="plus"></i></button>
+                    </div>
+                </div>
+
+                <div class="total-price-summary">
+                    <span>Grand Total:</span>
+                    <strong class="total-amount">$<span id="checkout-grand-total">1200.00</span></strong>
+                </div>
+
+                <button class="btn-order" onclick="placeOrder()">
+                    <span>Authorize Checkout & Pay</span>
+                    <i data-lucide="credit-card"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js?v=1.0.2"></script>
+</body>
+</html>
