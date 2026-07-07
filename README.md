@@ -57,17 +57,18 @@ graph TD
 ├── docker/
 │   ├── docker-compose.yml       # Orchestrates all infrastructure & service containers
 │   └── init.sql                 # Automatically creates databases (user_db, product_db, etc.)
-└── microservices/
-    ├── pom.xml                  # Parent Reactor POM (Lombok, Boot versioning)
-    ├── eureka-server/           # Service discovery registry
-    ├── config-server/           # Centralized configuration server (Native configuration repository)
-    ├── config-repo/             # Folder containing YAML configuration files for services
-    ├── api-gateway/             # Gateway router with custom JWT authorization filter
-    ├── user-service/            # Authentication endpoint, user CRUD & JWT signing
-    ├── product-service/         # Product catalog and stock manager
-    ├── order-service/           # Order placement workflow orchestrator (Feign client + Kafka)
-    ├── payment-service/         # Mock payment handler
-    └── notification-service/    # Asynchronous Kafka message consumer
+├── microservices/
+│   ├── pom.xml                  # Parent Reactor POM (Lombok, Boot versioning)
+│   ├── eureka-server/           # Service discovery registry
+│   ├── config-server/           # Centralized configuration server (Native configuration repository)
+│   ├── config-repo/             # Folder containing YAML configuration files for services
+│   ├── api-gateway/             # Gateway router with custom JWT authorization filter
+│   ├── user-service/            # Authentication endpoint, user CRUD & JWT signing
+│   ├── product-service/         # Product catalog and stock manager
+│   ├── order-service/           # Order placement workflow orchestrator (Feign client + Kafka)
+│   ├── payment-service/         # Mock payment handler
+│   └── notification-service/    # Asynchronous Kafka message consumer
+└── web-ui/                      # Single-page Dark-mode Web UI dashboard interface for visual E2E testing
 ```
 
 ---
@@ -92,6 +93,16 @@ docker compose up -d
 ### 3. Check Registrations
 Access the Eureka Discovery Console to check if all services are fully registered:
 * **Eureka Console**: [http://localhost:8761](http://localhost:8761)
+
+### 4. Access the Web UI Control Panel
+The platform includes an interactive, dark-mode Single-Page Application (SPA) dashboard for executing user flows:
+* Start a local web server inside the `web-ui` directory:
+  ```bash
+  cd web-ui
+  python -m http.server 8000
+  ```
+* Navigate to **[http://localhost:8000](http://localhost:8000)** in your browser.
+* Register or log in to generate a JWT token, browse products, publish new items (requires ADMIN role), and perform real-time transactions.
 
 ---
 
