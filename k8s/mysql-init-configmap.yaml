@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mysql-init-configmap
+data:
+  init.sql: |
+    CREATE DATABASE IF NOT EXISTS user_db;
+    CREATE DATABASE IF NOT EXISTS product_db;
+    CREATE DATABASE IF NOT EXISTS order_db;
+    CREATE DATABASE IF NOT EXISTS payment_db;
+    CREATE DATABASE IF NOT EXISTS notification_db;
